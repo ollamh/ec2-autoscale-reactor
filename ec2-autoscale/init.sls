@@ -23,6 +23,7 @@ def run():
             'smtp.subject': 'EC2 Autoscale Subscription (via Salt Reactor)',
             'smtp.content': '{0}\r\n'.format(pprint.pformat(sns)),
         }
+        raise Exception(sns)
         smtp.send(msg_kwargs, __opts__)
         return {}
 

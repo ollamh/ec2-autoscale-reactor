@@ -24,7 +24,7 @@ def run():
             'smtp.content': '{0}\r\n'.format(pprint.pformat(sns)),
         }
         raise Exception(sns)
-        smtp.send_msg(msg_kwargs, __opts__)
+        smtp.send(msg_kwargs, __opts__)
         return {}
 
     url_check = sns['SigningCertURL'].replace('https://', '')
@@ -41,7 +41,7 @@ def run():
                     pprint.pformat(sns), url_check, url_comps[0]
                 ),
         }
-        smtp.send_msg(msg_kwargs, __opts__)
+        smtp.send(msg_kwargs, __opts__)
         return {}
 
     if not 'Subject' in sns:
@@ -79,14 +79,15 @@ def run():
                     pprint.pformat(sns)
                 ),
         }
-        smtp.send_msg(msg_kwargs, __opts__)
+        smtp.send(msg_kwargs, __opts__)
         return {}
     
     # message = json.loads(sns['Message'])
     # instance_id = str(message['EC2InstanceId'])
     # instance_name = ':'.join([str(message['AutoScalingGroupName']), str(message['EC2InstanceId'])])
+    # event = message['Event']
 
-    #if 'launch' in sns['Subject']:
+    #if event == 'autoscaling:??':
     #    vm_ = __opts__.get('ec2.autoscale', {})
     #    vm_['reactor'] = True
     #    vm_['instances'] = instance_name
@@ -101,7 +102,7 @@ def run():
     #            'runner.cloud.create': vm_list
     #        }
     #    }
-    #elif 'termination' in sns['Subject']:
+    #elif event == 'autoscaling:EC2_INSTANCE_TERMINATE':
     #    ret = {
     #        'ec2_autoscale_termination': {
     #            'wheel.key.delete': [

@@ -24,7 +24,7 @@ def run():
             'smtp.content': '{0}\r\n'.format(pprint.pformat(sns)),
         }
         raise Exception(sns)
-        smtp.send(msg_kwargs, __opts__)
+        smtp.send_msg(msg_kwargs, __opts__)
         return {}
 
     url_check = sns['SigningCertURL'].replace('https://', '')
@@ -41,7 +41,7 @@ def run():
                     pprint.pformat(sns), url_check, url_comps[0]
                 ),
         }
-        smtp.send(msg_kwargs, __opts__)
+        smtp.send_msg(msg_kwargs, __opts__)
         return {}
 
     if not 'Subject' in sns:
@@ -77,35 +77,35 @@ def run():
                     pprint.pformat(sns)
                 ),
         }
-        smtp.send(msg_kwargs, __opts__)
+        smtp.send_msg(msg_kwargs, __opts__)
         return {}
 
     message = json.loads(sns['Message'])
     instance_id = str(message['EC2InstanceId'])
     instance_name = ':'.join([str(message['AutoScalingGroupName']), str(message['EC2InstanceId'])])
 
-    if 'launch' in sns['Subject']:
-        vm_ = __opts__.get('ec2.autoscale', {})
-        vm_['reactor'] = True
-        vm_['instances'] = instance_name
-        vm_['instance_id'] = instance_id
-        vm_list = []
-        for key, value in vm_.iteritems():
-            if not key.startswith('__'):
-                vm_list.append({key: value})
-        # Fire off an event to wait for the machine
-        ret = {
-            'ec2_autoscale_launch': {
-                'runner.cloud.create': vm_list
-            }
-        }
-    elif 'termination' in sns['Subject']:
-        ret = {
-            'ec2_autoscale_termination': {
-                'wheel.key.delete': [
-                    {'match': instance_name},
-                ]
-            }
-        }
-
+    #if 'launch' in sns['Subject']:
+    #    vm_ = __opts__.get('ec2.autoscale', {})
+    #    vm_['reactor'] = True
+    #    vm_['instances'] = instance_name
+    #    vm_['instance_id'] = instance_id
+    #    vm_list = []
+    #    for key, value in vm_.iteritems():
+    #        if not key.startswith('__'):
+    #            vm_list.append({key: value})
+    #    # Fire off an event to wait for the machine
+    #    ret = {
+    #        'ec2_autoscale_launch': {
+    #            'runner.cloud.create': vm_list
+    #        }
+    #    }
+    #elif 'termination' in sns['Subject']:
+    #    ret = {
+    #        'ec2_autoscale_termination': {
+    #            'wheel.key.delete': [
+    #                {'match': instance_name},
+    #            ]
+    #        }
+    #    }
+    pprint.pformat(sns)
     return ret

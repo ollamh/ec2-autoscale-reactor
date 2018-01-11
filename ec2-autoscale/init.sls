@@ -1,5 +1,5 @@
 #!py
-
+import logging
 import pprint
 import os
 import time
@@ -10,6 +10,7 @@ import M2Crypto
 import salt.utils.smtp as smtp
 import salt.config as config
 
+logger = logging.getLogger(__name__)
 
 def run():
     '''
@@ -23,7 +24,7 @@ def run():
             'smtp.subject': 'EC2 Autoscale Subscription (via Salt Reactor)',
             'smtp.content': '{0}\r\n'.format(pprint.pformat(sns)),
         }
-        raise Exception(sns)
+        logger.debug(pprint.pformat(sns))
         smtp.send(msg_kwargs, __opts__)
         return {}
 
@@ -41,15 +42,14 @@ def run():
                     pprint.pformat(sns), url_check, url_comps[0]
                 ),
         }
+        logger.error(pprint.pformat(sns))
         smtp.send(msg_kwargs, __opts__)
         return {}
 
     if not 'Subject' in sns:
         sns['Subject'] = ''
 
-    raise Exception(pprint.pformat(sns))
-
-    pem_request = requests.request('GET', sns['SigningCertURL'])
+    pem_request = requests.get(sns['SigningCertURL'])
     pem = pem_request.text
 
     str_to_sign = (
@@ -79,37 +79,37 @@ def run():
                     pprint.pformat(sns)
                 ),
         }
+        logger.error(pprint.pformat(sns))
         smtp.send(msg_kwargs, __opts__)
         return {}
     
-    # message = json.loads(sns['Message'])
-    # instance_id = str(message['EC2InstanceId'])
-    # instance_name = ':'.join([str(message['AutoScalingGroupName']), str(message['EC2InstanceId'])])
-    # event = message['Event']
+    message = json.loads(sns['Message'])
+    instance_id = str(message['EC2InstanceId'])
+    instance_name = ':'.join([str(message['AutoScalingGroupName']), str(message['EC2InstanceId'])])
+    event = message['Event']
 
-    #if event == 'autoscaling:??':
-    #    vm_ = __opts__.get('ec2.autoscale', {})
-    #    vm_['reactor'] = True
-    #    vm_['instances'] = instance_name
-    #    vm_['instance_id'] = instance_id
-    #    vm_list = []
-    #    for key, value in vm_.iteritems():
-    #        if not key.startswith('__'):
-    #            vm_list.append({key: value})
-    #    # Fire off an event to wait for the machine
-    #    ret = {
-    #        'ec2_autoscale_launch': {
-    #            'runner.cloud.create': vm_list
-    #        }
-    #    }
-    #elif event == 'autoscaling:EC2_INSTANCE_TERMINATE':
-    #    ret = {
-    #        'ec2_autoscale_termination': {
-    #            'wheel.key.delete': [
-    #                {'match': instance_name},
-    #            ]
-    #        }
-    #    }
-    return {}
-    # return ret
+    if event == 'autoscaling:EC2_INSTANCE_LAUNCH':
+        vm_ = __opts__.get('ec2.autoscale', {})
+        vm_['reactor'] = True
+        vm_['instances'] = instance_name
+        vm_['instance_id'] = instance_id
+        vm_list = []
+        for key, value in vm_.iteritems():
+            if not key.startswith('__'):
+                vm_list.append({key: value})
+        # Fire off an event to wait for the machine
+        ret = {
+            'ec2_autoscale_launch': {
+                'runner.cloud.create': vm_list
+            }
+        }
+    elif event == 'autoscaling:EC2_INSTANCE_TERMINATE':
+        ret = {
+            'ec2_autoscale_termination': {
+                'wheel.key.delete': [
+                    {'match': instance_name},
+                ]
+            }
+        }
+    return ret
     

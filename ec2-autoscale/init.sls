@@ -47,7 +47,7 @@ def run():
     if not 'Subject' in sns:
         sns['Subject'] = ''
 
-    print(pprint.pformat(sns))
+    raise Exception(pprint.pformat(sns))
 
     pem_request = requests.request('GET', sns['SigningCertURL'])
     pem = pem_request.text

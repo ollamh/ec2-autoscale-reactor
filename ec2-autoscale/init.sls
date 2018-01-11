@@ -79,10 +79,10 @@ def run():
         }
         smtp.send_msg(msg_kwargs, __opts__)
         return {}
-
-    message = json.loads(sns['Message'])
-    instance_id = str(message['EC2InstanceId'])
-    instance_name = ':'.join([str(message['AutoScalingGroupName']), str(message['EC2InstanceId'])])
+    print(pprint.pformat(sns))
+    # message = json.loads(sns['Message'])
+    # instance_id = str(message['EC2InstanceId'])
+    # instance_name = ':'.join([str(message['AutoScalingGroupName']), str(message['EC2InstanceId'])])
 
     #if 'launch' in sns['Subject']:
     #    vm_ = __opts__.get('ec2.autoscale', {})
@@ -107,5 +107,6 @@ def run():
     #            ]
     #        }
     #    }
-    pprint.pformat(sns)
-    return ret
+    return {}
+    # return ret
+    

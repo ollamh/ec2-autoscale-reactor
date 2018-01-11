@@ -47,6 +47,8 @@ def run():
     if not 'Subject' in sns:
         sns['Subject'] = ''
 
+    print(pprint.pformat(sns))
+
     pem_request = requests.request('GET', sns['SigningCertURL'])
     pem = pem_request.text
 
@@ -79,7 +81,7 @@ def run():
         }
         smtp.send_msg(msg_kwargs, __opts__)
         return {}
-    print(pprint.pformat(sns))
+    
     # message = json.loads(sns['Message'])
     # instance_id = str(message['EC2InstanceId'])
     # instance_name = ':'.join([str(message['AutoScalingGroupName']), str(message['EC2InstanceId'])])
